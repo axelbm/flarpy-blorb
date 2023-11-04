@@ -9,6 +9,7 @@ public class BirdScript : MonoBehaviour
     public LogicScript logicScript;
     public float screenEdge;
 
+    public float soundEffectVolume = 0.5f;
     public AudioSource flapSound;
     public AudioSource scoreSound;
     public AudioSource hitSound;
@@ -23,12 +24,9 @@ public class BirdScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        logicScript = GameObject.FindGameObjectWithTag("Logic").GetComponent<LogicScript>();
-        // gameObject.name = "Bob Birdington";
-
-        flapSound.volume = logicScript.soundEffectVolume;
-        scoreSound.volume = logicScript.soundEffectVolume;
-        hitSound.volume = logicScript.soundEffectVolume;
+        flapSound.volume = soundEffectVolume;
+        scoreSound.volume = soundEffectVolume;
+        hitSound.volume = soundEffectVolume;
     }
 
     // Update is called once per frame
@@ -38,7 +36,7 @@ public class BirdScript : MonoBehaviour
         float angle = Mathf.Atan2(myRigidbody.velocity.y, 50) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
 
-        if (logicScript.IsGameRunning() == false)
+        if (logicScript && logicScript.IsGameRunning() == false)
             return;
 
         IsOutOfBounds();
@@ -62,34 +60,40 @@ public class BirdScript : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collider)
     {
-        if (collider.gameObject.CompareTag("Gate"))
-        {
-            logicScript.AddScore();
-            scoreSound.Play();
-        }
-
         if (collider.gameObject.CompareTag("Pipe Group"))
         {
             nextPipe = collider.gameObject;
+        }
 
-            Debug.Log("next pipe: " + nextPipe.name + " " + nextPipe.transform.position.x);
+
+        if (logicScript)
+        {
+            if (collider.gameObject.CompareTag("Gate"))
+            {
+                logicScript.AddScore();
+                scoreSound.Play();
+            }
+
+            if (collider.gameObject.CompareTag("Pipe"))
+            {
+                hitSound.Play();
+                logicScript.GameOver();
+            }
         }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Pipe"))
-        {
-            hitSound.Play();
-            logicScript.GameOver();
-        }
     }
 
     void IsOutOfBounds()
     {
-        if (transform.position.y > screenEdge || transform.position.y < -screenEdge)
+        if (logicScript)
         {
-            logicScript.GameOver();
+            if (transform.position.y > screenEdge || transform.position.y < -screenEdge)
+            {
+                logicScript.GameOver();
+            }
         }
     }
 }

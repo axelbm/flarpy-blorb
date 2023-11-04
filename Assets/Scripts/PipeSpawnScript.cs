@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,6 +11,7 @@ public class PipeSpawnScript : MonoBehaviour
     public float pipeOffset = 10;
     public float pipeSpeed = 5;
     public float pipeDistance = 40;
+    public float spawnAtStart = 0.2f;
 
     private float spawnRate
     {
@@ -22,7 +24,18 @@ public class PipeSpawnScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        spawnPipe();
+        int pipeToSpawn = (int)Math.Ceiling(spawnAtStart);
+
+        for (int i = 0; i < pipeToSpawn; i++)
+        {
+            float offset = (spawnAtStart - i) * pipeDistance;
+            spawnPipe(-offset);
+        }
+
+        timer = spawnAtStart % 1 * spawnRate;
+
+        if (timer == 0)
+            spawnPipe();
     }
 
     // Update is called once per frame
@@ -40,9 +53,11 @@ public class PipeSpawnScript : MonoBehaviour
 
     }
 
-    void spawnPipe()
+    void spawnPipe(float offset = 0)
     {
-        Vector3 spawnPosition = transform.position + Vector3.up * Random.Range(-pipeOffset, pipeOffset);
+        Vector3 spawnPosition =
+            transform.position + Vector3.up * UnityEngine.Random.Range(-pipeOffset, pipeOffset) +
+            Vector3.right * offset;
 
         GameObject pipe = Instantiate(pipePrefab, spawnPosition, transform.rotation);
         pipe.GetComponent<PipeMoveScript>().gateSize = gateSize;
