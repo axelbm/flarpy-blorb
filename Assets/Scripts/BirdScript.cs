@@ -15,6 +15,9 @@ public class BirdScript : MonoBehaviour
 
     public GameObject wingUp;
     public GameObject wingDown;
+    public GameObject nextPipe;
+
+    public ParticleSystem flapParticles;
 
 
     // Start is called before the first frame update
@@ -38,11 +41,6 @@ public class BirdScript : MonoBehaviour
         if (logicScript.IsGameRunning() == false)
             return;
 
-        if (Input.GetKeyDown(KeyCode.Space) == true)
-        {
-            flap();
-        }
-
         IsOutOfBounds();
 
         bool isFlapping = myRigidbody.velocity.y > 0;
@@ -53,10 +51,12 @@ public class BirdScript : MonoBehaviour
         wingDown.transform.rotation = Quaternion.AngleAxis(angle * 2, Vector3.forward);
     }
 
-    void flap()
+    public void Flap()
     {
         myRigidbody.velocity = Vector2.up * flapStrength;
         flapSound.Play();
+
+        flapParticles.Play();
     }
 
 
@@ -66,6 +66,13 @@ public class BirdScript : MonoBehaviour
         {
             logicScript.AddScore();
             scoreSound.Play();
+        }
+
+        if (collider.gameObject.CompareTag("Pipe Group"))
+        {
+            nextPipe = collider.gameObject;
+
+            Debug.Log("next pipe: " + nextPipe.name + " " + nextPipe.transform.position.x);
         }
     }
 

@@ -5,11 +5,19 @@ using UnityEngine;
 public class PipeSpawnScript : MonoBehaviour
 {
     public GameObject pipePrefab;
-    public float spawnRate = 2;
     private float timer = 0;
-    public float pipeOffset = 10;
     public float gateSize = 16;
+    public float pipeOffset = 10;
     public float pipeSpeed = 5;
+    public float pipeDistance = 40;
+
+    private float spawnRate
+    {
+        get
+        {
+            return pipeDistance / pipeSpeed;
+        }
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -39,5 +47,6 @@ public class PipeSpawnScript : MonoBehaviour
         GameObject pipe = Instantiate(pipePrefab, spawnPosition, transform.rotation);
         pipe.GetComponent<PipeMoveScript>().gateSize = gateSize;
         pipe.GetComponent<PipeMoveScript>().moveSpeed = pipeSpeed;
+        pipe.GetComponent<PipeMoveScript>().detectionSize = pipeDistance;
     }
 }

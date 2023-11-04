@@ -10,18 +10,25 @@ public class LogicScript : MonoBehaviour
 {
     public int playerScore;
 
+    public ControllerScript controllerScript;
     public GameObject gameOverScreen;
     public TextMeshProUGUI scoreText;
+    public TextMeshProUGUI controlsHelpText;
     
     private bool gameRunning = true;
+    private bool isSleeping = false;
+    private bool isInitalSleep = true;
     private bool gameIsOver = false;
     private float gameOverAtTime;
-    private float timeBeforeRestart = 0.5f;
+    public float timeBeforeRestart = 0.5f;
 
     public AudioSource gameOverSound;
     public AudioSource gameOverSoundHighScore;
     public AudioSource startMusic;
     public AudioSource gameMusic;
+    public AudioSource initialSleepMusic;
+
+    public ParticleSystem backgroundParticles;
 
     public float musicVolume = 0.5f;
     public float soundEffectVolume = 0.5f;
@@ -32,14 +39,65 @@ public class LogicScript : MonoBehaviour
 
     public void Start()
     {
-        currentMusicVolume = musicVolume;
+        backgroundParticles.Play();
+        // backgroundParticles.
+
+        initialSleepMusic.Play();
+
+        gameOverSound.volume = soundEffectVolume;
+        gameOverSoundHighScore.volume = soundEffectVolume;
+
+        controlsHelpText.text = "Press [Space] to flap";
+        controlsHelpText.gameObject.SetActive(true);
+
+        targetMusicVolume = musicVolume * 0.2f;
+        currentMusicVolume = targetMusicVolume;
+
+        isInitalSleep = true;
+
+        SleepGame();
+    }
+
+    public void AwakeGame()
+    {
+        if (isInitalSleep == true)
+        {
+            InitalAwakeGame();
+            return;
+        }
+
+        Time.timeScale = 1;
+        isSleeping = false;
+
+        targetMusicVolume = musicVolume;
+
+        controllerScript.Mode = "game";
+    }
+
+    private void InitalAwakeGame()
+    {
+        Debug.Log("Inital Awake Game");
+
+        controlsHelpText.gameObject.SetActive(false);
+
         targetMusicVolume = musicVolume;
 
         startMusic.Play();
         gameMusic.PlayDelayed(startMusic.clip.length - 0.05f);
 
-        gameOverSound.volume = soundEffectVolume;
-        gameOverSoundHighScore.volume = soundEffectVolume;
+        isInitalSleep = false;
+
+        AwakeGame();
+    }
+
+    public void SleepGame()
+    {
+        Time.timeScale = 0;
+        isSleeping = true;
+
+        targetMusicVolume = musicVolume * 0.5f;
+        
+        controllerScript.Mode = "sleep";
     }
 
 
@@ -57,6 +115,8 @@ public class LogicScript : MonoBehaviour
         gameRunning = false;
 
         targetMusicVolume = musicVolume * 0.5f;
+
+        controllerScript.Mode = "pause";
     }
 
     [ContextMenu("Resume Game")]
@@ -66,6 +126,8 @@ public class LogicScript : MonoBehaviour
         gameRunning = true;
 
         targetMusicVolume = musicVolume;
+
+        controllerScript.Mode = "game";
     }
 
     public bool IsGameRunning()
@@ -90,6 +152,8 @@ public class LogicScript : MonoBehaviour
         }
 
         gameOverScreen.SetActive(true);
+
+        controllerScript.Mode = "gameOver";
     }
 
     public void RestartGame()
@@ -104,24 +168,6 @@ public class LogicScript : MonoBehaviour
 
         startMusic.volume = currentMusicVolume;
         gameMusic.volume = currentMusicVolume;
-
-        if (gameIsOver == true)
-        {
-            if (Time.realtimeSinceStartup > gameOverAtTime + timeBeforeRestart)
-            {   
-                if (Input.GetKeyDown(KeyCode.Space) == true)
-                    RestartGame();
-            }
-        }
-        else
-        {
-            if (Input.GetKeyDown(KeyCode.Escape) == true)
-            {
-                if (gameRunning == true)
-                    PauseGame();
-                else
-                    ResumeGame();
-            }
-        }
+        initialSleepMusic.volume = currentMusicVolume;
     }
 }
