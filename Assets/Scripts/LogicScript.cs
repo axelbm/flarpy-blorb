@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class LogicScript : MonoBehaviour
@@ -12,6 +13,7 @@ public class LogicScript : MonoBehaviour
 
     public ControllerScript controllerScript;
     public GameObject gameOverScreen;
+    public GameObject pauseScreen;
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI controlsHelpText;
     
@@ -30,8 +32,8 @@ public class LogicScript : MonoBehaviour
 
     public ParticleSystem backgroundParticles;
 
-    public float musicVolume = 0.5f;
-    public float soundEffectVolume = 0.5f;
+    public float musicVolume = 1f;
+    public float soundEffectVolume = 1f;
 
     private float currentMusicVolume;
     private float targetMusicVolume;
@@ -109,7 +111,7 @@ public class LogicScript : MonoBehaviour
     }
 
     [ContextMenu("Pause Game")]
-    public void PauseGame()
+    public void PauseGame(bool showPauseMenu = true)
     {
         Time.timeScale = 0;
         gameRunning = false;
@@ -117,6 +119,9 @@ public class LogicScript : MonoBehaviour
         targetMusicVolume = musicVolume * 0.5f;
 
         controllerScript.Mode = "pause";
+
+        if (showPauseMenu)
+            pauseScreen.SetActive(true);
     }
 
     [ContextMenu("Resume Game")]
@@ -128,6 +133,8 @@ public class LogicScript : MonoBehaviour
         targetMusicVolume = musicVolume;
 
         controllerScript.Mode = "game";
+
+        pauseScreen.SetActive(false);
     }
 
     public bool IsGameRunning()
@@ -139,7 +146,7 @@ public class LogicScript : MonoBehaviour
     {
         gameIsOver = true;
         gameOverAtTime = Time.realtimeSinceStartup;
-        PauseGame();
+        PauseGame(false);
 
         if (playerScore > PlayerPrefs.GetInt("HighScore", 0))
         {
@@ -159,7 +166,13 @@ public class LogicScript : MonoBehaviour
     public void RestartGame()
     {
         Time.timeScale = 1;
-        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        SceneManager.LoadScene("Main Game");
+    }
+
+    public void QuitGame()
+    {
+        Time.timeScale = 1;
+        SceneManager.LoadScene("Menu");
     }
 
     void Update()

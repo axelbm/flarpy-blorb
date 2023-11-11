@@ -60,6 +60,7 @@ public class PipeSpawnScript : MonoBehaviour
             Vector3.right * offset;
 
         GameObject pipe = Instantiate(pipePrefab, spawnPosition, transform.rotation);
+        pipe.transform.parent = transform;
         pipe.GetComponent<PipeMoveScript>().gateSize = gateSize;
         pipe.GetComponent<PipeMoveScript>().moveSpeed = pipeSpeed;
         pipe.GetComponent<PipeMoveScript>().detectionSize = pipeDistance;
