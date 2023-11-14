@@ -63,3 +63,8 @@ crashlytics-build.properties
 
 *.app
 .plastic
+
+Samples/
+Samples.meta
+
+UserSettings/

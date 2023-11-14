@@ -15,7 +15,8 @@ public class MainMenuScript : MonoBehaviour
 
     public AudioMixer mainMixer;
 
-    void Start() {
+    void Start()
+    {
         playButton.onClick.AddListener(PlayGame);
         settingsButton.onClick.AddListener(OpenSettings);
         quitButton.onClick.AddListener(QuitGame);
@@ -23,26 +24,43 @@ public class MainMenuScript : MonoBehaviour
         mainMixer.SetFloat("mainVolume", Mathf.Log10(PlayerPrefs.GetFloat("mainVolume", 1f)) * 20);
         mainMixer.SetFloat("musicVolume", Mathf.Log10(PlayerPrefs.GetFloat("musicVolume", 0.5f)) * 20);
         mainMixer.SetFloat("sfxVolume", Mathf.Log10(PlayerPrefs.GetFloat("sfxVolume", 1f)) * 20);
+
+        if (!ProfileManager.IsInitalized)
+        {
+            playButton.interactable = false;
+            ProfileManager.Instance.onProfileManagerInitalized.AddListener(() =>
+            {
+                playButton.interactable = true;
+            });
+        }
     }
 
-    public void PlayGame() {
+    public void PlayGame()
+    {
+        if (!ProfileManager.Instance.IsSignedIn)
+            return;
+
         SceneManager.LoadScene("Main Game");
     }
 
-    public void OpenSettings() {
+    public void OpenSettings()
+    {
         HideMenu();
         settingsScript.ShowMenu();
     }
 
-    public void QuitGame() {
+    public void QuitGame()
+    {
         Application.Quit();
     }
 
-    public void HideMenu() {
+    public void HideMenu()
+    {
         gameObject.SetActive(false);
     }
 
-    public void ShowMenu() {
+    public void ShowMenu()
+    {
         gameObject.SetActive(true);
     }
 }

@@ -1,11 +1,7 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
+using Unity.Services.Leaderboards.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class LogicScript : MonoBehaviour
 {
@@ -14,14 +10,18 @@ public class LogicScript : MonoBehaviour
     public ControllerScript controllerScript;
     public GameObject gameOverScreen;
     public GameObject pauseScreen;
+    public TextMeshProUGUI profileNameText;
     public TextMeshProUGUI scoreText;
+    public TextMeshProUGUI highScoreText;
     public TextMeshProUGUI controlsHelpText;
-    
+
+
     private bool gameRunning = true;
     private bool isSleeping = false;
     private bool isInitalSleep = true;
     private bool gameIsOver = false;
     private float gameOverAtTime;
+    private bool canRestart = true;
     public float timeBeforeRestart = 0.5f;
 
     public AudioSource gameOverSound;
@@ -32,11 +32,21 @@ public class LogicScript : MonoBehaviour
 
     public ParticleSystem backgroundParticles;
 
+    public LeaderBoard leaderBoard;
+
     public float musicVolume = 1f;
     public float soundEffectVolume = 1f;
 
     private float currentMusicVolume;
     private float targetMusicVolume;
+
+    public static LeaderboardEntry lastHighScore;
+    public static LogicScript Instance;
+
+    public LogicScript()
+    {
+        Instance = this;
+    }
 
 
     public void Start()
@@ -58,6 +68,10 @@ public class LogicScript : MonoBehaviour
         isInitalSleep = true;
 
         SleepGame();
+
+        profileNameText.text = ProfileManager.Instance.PlayerName;
+        scoreText.text = 0.ToString();
+        highScoreText.text = ProfileManager.Instance.HighScore.Score.ToString();
     }
 
     public void AwakeGame()
@@ -142,15 +156,16 @@ public class LogicScript : MonoBehaviour
         return gameRunning;
     }
 
-    public void GameOver()
+    public async void GameOver()
     {
+        canRestart = false;
         gameIsOver = true;
         gameOverAtTime = Time.realtimeSinceStartup;
         PauseGame(false);
 
-        if (playerScore > PlayerPrefs.GetInt("HighScore", 0))
+
+        if (playerScore > ProfileManager.Instance.HighScore.Score)
         {
-            PlayerPrefs.SetInt("HighScore", playerScore);
             gameOverSoundHighScore.Play();
         }
         else
@@ -161,10 +176,23 @@ public class LogicScript : MonoBehaviour
         gameOverScreen.SetActive(true);
 
         controllerScript.Mode = "gameOver";
+        
+        await ProfileManager.Instance.AddScore(playerScore);
+
+        canRestart = true;
+    }
+
+    public async void SwitchProfile(string profileName)
+    {
+        await leaderBoard.UpdatePlayerName(profileName);
+        lastHighScore = await leaderBoard.GetPlayerScore();
     }
 
     public void RestartGame()
     {
+        if (canRestart == false)
+            return;
+
         Time.timeScale = 1;
         SceneManager.LoadScene("Main Game");
     }
